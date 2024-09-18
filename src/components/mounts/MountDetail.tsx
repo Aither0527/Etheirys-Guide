@@ -4,9 +4,11 @@ import { useNavigate, useParams } from "react-router-dom";
 import iconSprite from "/public/image/search_icon_sprites.png";
 import "../../data/searchIconPos.css";
 import { useEffect, useState } from "react";
-import { collection, getDocs, query, where } from "firebase/firestore";
 import { AcquireIcon, MountItemProps } from "../../data/mountData";
+import { useRecoilState } from "recoil";
+import { mountDataState } from "../../store/atoms";
 import { db } from "../../../firebaseConfig";
+import { collection, getDocs, query, where } from "firebase/firestore";
 
 const container = css`
   flex: 1;
@@ -121,10 +123,9 @@ const iconMap = {
 const MountDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [allMountData, setAllMountData] = useRecoilState(mountDataState);
   const [mount, setMount] = useState<MountItemProps | null>(null);
   const [loading, setLoading] = useState(true);
-
-  // const mount = mountData.find((item) => item.icon_id === Number(id));
 
   const imagePath = `${import.meta.env.BASE_URL}image/mount_detail/${String(
     id
@@ -132,31 +133,38 @@ const MountDetail = () => {
 
   useEffect(() => {
     const fetchMount = async () => {
-      try {
-        if (!id) throw new Error("Mount ID is undefined");
+      if (allMountData.length > 0 && id !== undefined) {
+        const findMount = allMountData.find((m) => m.icon_id === parseInt(id));
+        if (findMount) {
+          setMount(findMount);
+          setLoading(false);
+          return;
+        }
+      }
 
+      try {
         const mountRef = collection(db, "mounts");
-        const sameId = query(mountRef, where("icon_id", "==", parseInt(id)));
-        const querySnapshot = await getDocs(sameId);
+        const mountId = query(
+          mountRef,
+          where("icon_id", "==", parseInt(id || ""))
+        );
+        const querySnapshot = await getDocs(mountId);
 
         if (!querySnapshot.empty) {
-          const data = querySnapshot.docs[0].data();
-          setMount({
-            ...data,
-          } as MountItemProps);
+          const data = querySnapshot.docs[0].data() as MountItemProps;
+          setMount(data);
         } else {
-          console.log("Mount not found");
+          console.log("mount not found");
         }
-      } catch (err) {
-        console.log("Error fetching mount data");
-        console.error(err);
+      } catch (error) {
+        console.error("Error with fetching data", error);
       } finally {
         setLoading(false);
       }
     };
 
     fetchMount();
-  }, [id]);
+  }, [id, allMountData, setAllMountData]);
 
   if (loading)
     return (

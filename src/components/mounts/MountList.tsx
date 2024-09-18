@@ -7,6 +7,8 @@ import "../../data/searchIconPos.css";
 import { collection, getDocs } from "firebase/firestore";
 import { AcquireIcon, MountItemProps } from "../../data/mountData";
 import { db } from "../../../firebaseConfig";
+import { useRecoilState } from "recoil";
+import { mountDataState } from "../../store/atoms";
 
 const list_wrap = css`
   flex: 1;
@@ -155,7 +157,7 @@ const MountList = () => {
   const [search, setSearch] = useState("");
   const [searchType, setSearchType] = useState("이름");
   const [selectedIcon, setSelectedIcon] = useState<AcquireIcon | null>(null);
-  const [mountData, setMountData] = useState<MountItemProps[]>([]);
+  const [mountData, setMountData] = useRecoilState(mountDataState);
   const [filteredData, setFilteredData] = useState<MountItemProps[]>([]);
 
   const onChangeSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -172,25 +174,27 @@ const MountList = () => {
 
   useEffect(() => {
     const fetchMountData = async () => {
-      const mountsCollection = collection(db, "mounts");
-      const mountsSnapshot = await getDocs(mountsCollection);
-      const mountList = mountsSnapshot.docs.map(
-        (doc) =>
-          ({
-            ...doc.data(),
-            id: doc.id ,
-          } as MountItemProps)
-      );
+      if (mountData.length === 0) {
+        const mountsCollection = collection(db, "mounts");
+        const mountsSnapshot = await getDocs(mountsCollection);
+        const mountList = mountsSnapshot.docs.map(
+          (doc) =>
+            ({
+              ...doc.data(),
+              id: doc.id,
+            } as MountItemProps)
+        );
 
-      mountList.sort(function (a, b) {
-        return parseInt(a.id) - parseInt(b.id);
-      });
+        mountList.sort(function (a, b) {
+          return parseInt(a.id) - parseInt(b.id);
+        });
 
-      setMountData(mountList);
+        setMountData(mountList);
+      }
     };
 
     fetchMountData();
-  }, []);
+  }, [mountData.length, setMountData]);
 
   useEffect(() => {
     const filteredMounts = mountData.filter((item) => item.detail !== ""); //detail이 있는거만 보여주려고 하는 필터링.
