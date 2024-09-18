@@ -5,6 +5,10 @@
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
-    ]
+    ],
+    "rewirtes": [{
+      "source" : "**",
+      "destination": "/index.html"
+    }]
   }
 }
