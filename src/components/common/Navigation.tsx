@@ -23,7 +23,6 @@ const Navigation = (props: { toggleNav: () => void }) => {
   const handleNavigation = (path: string) => {
     navigate(path);
     if (window.innerWidth <= 950) {
-      console.log("small")
       props.toggleNav();
     }
   };

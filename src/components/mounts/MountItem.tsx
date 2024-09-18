@@ -75,8 +75,6 @@ const MountItem = (props: { mountItem: MountItemProps }) => {
   const navigate = useNavigate();
 
   const toDetailPage = () => {
-    console.log(props.mountItem.id);
-
     navigate(`/mount/${props.mountItem.icon_id}`);
   };
 
