@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 
 firebaseConfig.ts
+.firebaserc
+.firebase/
+.runtimeconfig.json
